@@ -1,0 +1,6 @@
+use_frameworks!
+target 'WKCustomWebView_Tests' do
+  pod 'WKCustomWebView', :path => '../'
+  
+  
+end
