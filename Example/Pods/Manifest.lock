@@ -1,0 +1,16 @@
+PODS:
+  - WKCustomWebView (0.1.0)
+
+DEPENDENCIES:
+  - WKCustomWebView (from `../`)
+
+EXTERNAL SOURCES:
+  WKCustomWebView:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  WKCustomWebView: 66ecfd3beb1f84c595e9730ad70233c745718322
+
+PODFILE CHECKSUM: c3d8bb42af87acdca2185be357eae11fc4dcfe1c
+
+COCOAPODS: 1.10.0
