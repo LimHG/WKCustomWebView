@@ -17,11 +17,26 @@ open class WKCustomWebView: WKWebView {
     private var deleteCookieName: String = ""
     
     @objc
-    public init(frame: CGRect, userDefault: UserDefaults, uDCookie: String, saveCookieName: String, deleteCookieName: String = "", configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
-        self.userDefault = userDefault
-        self.uDCookie = uDCookie
+    public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
+        if(userDefault == nil)
+        {
+            self.userDefault = UserDefaults.standard
+        } else {
+            self.userDefault = userDefault
+        }
+        
+        if(uDCookie == "")
+        {
+            self.uDCookie = "uDCookie"
+        } else {
+            self.uDCookie = uDCookie
+        }
         self.saveCookieName = saveCookieName
         self.deleteCookieName = deleteCookieName
+        
+        
+        
+        
         
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
         let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
@@ -138,11 +153,29 @@ extension WKCustomWebView: WKNavigationDelegate {
                 {
                     let now = Date()
                     for cookie in cookies {
-                        if(cookie.domain.contains(self.saveCookieName)) {
-                            #if DEBUG
-                            print("WKCustomWebView: cookie name == \(cookie.name)")
-                            #endif
-                            
+                        if(self.saveCookieName != "")
+                        {
+                            if(cookie.domain.contains(self.saveCookieName)) {
+                                if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
+                                    HTTPCookieStorage.shared.deleteCookie(cookie)
+                                    webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
+                                }
+                                else {
+                                    if(self.deleteCookieName != "")
+                                    {
+                                        if(cookie.name.contains(self.deleteCookieName))
+                                        {
+                                            HTTPCookieStorage.shared.deleteCookie(cookie)
+                                            webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
+                                        } else {
+                                            cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                        }
+                                    } else {
+                                        cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                    }
+                                }
+                            }
+                        } else {
                             if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                 HTTPCookieStorage.shared.deleteCookie(cookie)
                                 webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
@@ -170,8 +203,28 @@ extension WKCustomWebView: WKNavigationDelegate {
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         let now = Date()
                         for cookie in cookies {
-
-                            if(cookie.domain.contains(self.saveCookieName)) {
+                            if(self.saveCookieName != "")
+                            {
+                                if(cookie.domain.contains(self.saveCookieName)) {
+                                    if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
+                                        HTTPCookieStorage.shared.deleteCookie(cookie)
+                                        webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
+                                    } else {
+                                        if(self.deleteCookieName != "")
+                                        {
+                                            if(cookie.name.contains(self.deleteCookieName))
+                                            {
+                                                HTTPCookieStorage.shared.deleteCookie(cookie)
+                                                webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
+                                            } else {
+                                                cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                            }
+                                        } else {
+                                            cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                        }
+                                    }
+                                }
+                            } else {
                                 if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                     HTTPCookieStorage.shared.deleteCookie(cookie)
                                     webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
@@ -202,7 +255,26 @@ extension WKCustomWebView: WKNavigationDelegate {
             if let cookies = HTTPCookieStorage.shared.cookies {
                 let now = Date()
                 for cookie in cookies {
-                    if(cookie.domain.contains(self.saveCookieName)) {
+                    if(self.saveCookieName != "")
+                    {
+                        if(cookie.domain.contains(self.saveCookieName)) {
+                            if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
+                                HTTPCookieStorage.shared.deleteCookie(cookie)
+                            } else {
+                                if(self.deleteCookieName != "")
+                                {
+                                    if(cookie.name.contains(self.deleteCookieName))
+                                    {
+                                        HTTPCookieStorage.shared.deleteCookie(cookie)
+                                    } else {
+                                        cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                    }
+                                } else {
+                                    cookieDict[cookie.name] = cookie.properties as AnyObject?
+                                }
+                            }
+                        }
+                    } else {
                         if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         } else {

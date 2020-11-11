@@ -27,7 +27,16 @@ pod 'WKCustomWebView'
 // InappAlert Class import
 import WKCustomWebView
 
-// WKCustomWebView 변수 생성
+// WKCustomWebView 변수 간편 생성 or 상세 설정 생성으로 객체 생성
+// (간편 생성 방법)
+// - frame : WKCustomWebView를 그릴 Frame 지정
+lazy var wkWebView: WKCustomWebView = {
+    let webView: WKCustomWebView = WKCustomWebView(frame: CGRect.init(x: 0, y: 0, width: self.mainView.frame.size.width, height: self.mainView.frame.size.height))
+    return webView
+}()
+
+
+// (상세 설정 생성 방법)
 // - frame : WKCustomWebView를 그릴 Frame 지정
 // - userDefault : 앱에서 사용할 UserDefault 객체 전달 (쿠키 정보 저장을 위해 사용)
 // - uDCookie : 앱에서 사용할 UserDefault에 저장할 키 이름 
@@ -42,12 +51,20 @@ lazy var wkWebView: WKCustomWebView = {
 
 2. WKCustomWebView Delegate 이용
 ```ruby
-// WKWebView의 UIDelegate 이용시
+// 딜리게이트 이용시 기존 WKWebView의 딜리게이트를 넣어주어야 한다.
+// - WKNavigationDelegate, WKUIDelegate
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
+
+}
+
+
+// WKWebView의 WKUIDelegate 이용시
 self.wkWebView.uiDelegate = self
-// WKCustomWebView wkNavigationDelegate 이용 시
+// WKCustomWebView WKNavigationDelegate 이용 시 아래 구문으로 선언해 주어야 한다.
 self.wkWebView.wkNavigationDelegate = self
 
-// wkNavigationDelegate self 시 사용가능 함수 
+
+// wkNavigationDelegate self 시 아래 두개의 함수는 별도로 구성을 해주어야 한다.
 // - onDecidePolicyForNavigationAction의 경우 WKWebView의 WKNavigationDelegate의 decidePolicyForNavigationAction 함수와 매칭된다.
 self.wkWebView.onDecidePolicyForNavigationAction = { (webView, navigationAction, decisionHandler) in
     if(navigationAction.request.url?.absoluteString == "about:blank")
@@ -57,6 +74,7 @@ self.wkWebView.onDecidePolicyForNavigationAction = { (webView, navigationAction,
         decisionHandler(.allow)
     }
 }
+
 // - onDecidePolicyForNavigationResponse의 경우 WKWebView의 WKNavigationDelegate의 decidePolicyForNavigationResponse 함수와 매칭된다.
 self.wkWebView.onDecidePolicyForNavigationResponse = { (webView, navigationResponse, decisionHandler) in
     decisionHandler(.allow)
