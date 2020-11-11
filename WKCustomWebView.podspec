@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WKCustomWebView'
-  s.version          = '0.1.0'
+  s.version          = '0.1.2'
   s.summary          = 'Simple Management Cookie WKWebView'
   s.swift_version    = '5.0'
 
@@ -29,7 +29,7 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'https://github.com/LimHG/WKCustomWebView.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '9.0'
 
   s.source_files = 'WKCustomWebView/Classes/**/*'
   

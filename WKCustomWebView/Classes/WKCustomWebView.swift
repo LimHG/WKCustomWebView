@@ -13,12 +13,14 @@ open class WKCustomWebView: WKWebView {
     // WKCustomWebView inside Value
     private var userDefault: UserDefaults? = nil
     private var uDCookie: String = ""
+    private var saveCookieName: String = ""
     private var deleteCookieName: String = ""
     
     @objc
-    public init(frame: CGRect, userDefault: UserDefaults, uDCookie: String, deleteCookieName: String = "", configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
+    public init(frame: CGRect, userDefault: UserDefaults, uDCookie: String, saveCookieName: String, deleteCookieName: String = "", configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
         self.userDefault = userDefault
         self.uDCookie = uDCookie
+        self.saveCookieName = saveCookieName
         self.deleteCookieName = deleteCookieName
         
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
@@ -84,6 +86,7 @@ extension WKCustomWebView: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Swift.Void) {
         if let handler = onDecidePolicyForNavigationResponse {
+//            // * 구글 WebView 로그인 막혔을 경우 체크를 위한 코드 부분
 //            if(webView.url?.absoluteString.contains("https://accounts.google.com/o/oauth2/auth?"))!
 //            {
 //                if (navigationResponse.response is HTTPURLResponse) {
@@ -97,7 +100,6 @@ extension WKCustomWebView: WKNavigationDelegate {
 //                }
 //            }
             
-            // * 구글 WebView 로그인 막혔을 경우 체크를 위한 코드 부분
             if (navigationResponse.response is HTTPURLResponse) {
                 let response = navigationResponse.response as? HTTPURLResponse
                 #if DEBUG
@@ -136,9 +138,9 @@ extension WKCustomWebView: WKNavigationDelegate {
                 {
                     let now = Date()
                     for cookie in cookies {
-                        if(cookie.domain.contains(URL_COOKIE)) {
+                        if(cookie.domain.contains(self.saveCookieName)) {
                             #if DEBUG
-                            print("WKCustomWebView : cookie name == \(cookie.name)")
+                            print("WKCustomWebView: cookie name == \(cookie.name)")
                             #endif
                             
                             if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
@@ -169,7 +171,7 @@ extension WKCustomWebView: WKNavigationDelegate {
                         let now = Date()
                         for cookie in cookies {
 
-                            if(cookie.domain.contains(URL_COOKIE)) {
+                            if(cookie.domain.contains(self.saveCookieName)) {
                                 if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                     HTTPCookieStorage.shared.deleteCookie(cookie)
                                     webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
@@ -200,7 +202,7 @@ extension WKCustomWebView: WKNavigationDelegate {
             if let cookies = HTTPCookieStorage.shared.cookies {
                 let now = Date()
                 for cookie in cookies {
-                    if(cookie.domain.contains(URL_COOKIE)) {
+                    if(cookie.domain.contains(self.saveCookieName)) {
                         if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         } else {
