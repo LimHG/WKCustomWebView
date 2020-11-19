@@ -85,6 +85,75 @@ open class WKCustomWebView: WKWebView {
         fatalError("WKCustomWebView : init(coder:) has not been implemented, init(frame:configurationBlock:)")
     }
     
+    
+    
+    // MARK: --- Func: WKCustomWebView Class
+    public func WKCustomWebViewSC()
+    {
+        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
+        let dispatchGroup = DispatchGroup()
+        if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
+            for (_, cookieProperties) in cookieDictionary {
+                if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
+                    dispatchGroup.enter()
+                    if #available(iOS 11.0, *) {
+                        self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
+                            dispatchGroup.leave()
+                        })
+                    } else {
+                        HTTPCookieStorage.shared.setCookie(cookie)
+                        dispatchGroup.leave()
+                    }
+                }
+            }
+        } else {
+            for cookie in sharedCookies{
+                dispatchGroup.enter()
+                if #available(iOS 11.0, *) {
+                    self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
+                        dispatchGroup.leave()
+                    })
+                } else {
+                    HTTPCookieStorage.shared.setCookie(cookie)
+                    dispatchGroup.leave()
+                }
+            }
+        }
+    }
+    public func WKCustomWebViewSCandRload()
+    {
+        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
+        let dispatchGroup = DispatchGroup()
+        if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
+            for (_, cookieProperties) in cookieDictionary {
+                if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
+                    dispatchGroup.enter()
+                    if #available(iOS 11.0, *) {
+                        self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
+                            dispatchGroup.leave()
+                        })
+                    } else {
+                        HTTPCookieStorage.shared.setCookie(cookie)
+                        dispatchGroup.leave()
+                    }
+                }
+            }
+        } else {
+            for cookie in sharedCookies{
+                dispatchGroup.enter()
+                if #available(iOS 11.0, *) {
+                    self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
+                        dispatchGroup.leave()
+                    })
+                } else {
+                    HTTPCookieStorage.shared.setCookie(cookie)
+                    dispatchGroup.leave()
+                }
+            }
+        }
+        
+        self.reload()
+    }
 }
 
 

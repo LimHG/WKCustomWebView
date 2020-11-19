@@ -81,7 +81,16 @@ self.wkWebView.onDecidePolicyForNavigationResponse = { (webView, navigationRespo
 }
 ```
 
-3. WKCustomWebView 객체를 이용하여 기존 WKWebView 객체와 동일하게 사용시 자동으로 Cookie를 관리하게 된다.
+3. WKCustomWebView 창간 이동시 세션 유지
+```ruby
+// A ViewController <-> B ViewController 간 세션 유지를 위해서 B에서 A로 돌아갈때 창이 종료되는 시점에서 애라 함수 호출
+// 세션 업데이트
+self.wkWebView.WKCustomWebViewSC() 
+// 세션 업데이트 및 웹뷰 리로드
+self.wkWebView.WKCustomWebViewSCandRload()
+```
+
+4. WKCustomWebView 객체를 이용하여 기존 WKWebView 객체와 동일하게 사용시 자동으로 Cookie를 관리하게 된다.
 
 
 ## Author
