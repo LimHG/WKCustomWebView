@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'WKCustomWebView'
-  s.version          = '0.1.5'
+  s.version          = '0.1.6'
   s.summary          = 'Simple Management Cookie WKWebView'
   s.swift_version    = '5.0'
 

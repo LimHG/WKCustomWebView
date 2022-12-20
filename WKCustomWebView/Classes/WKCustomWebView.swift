@@ -17,7 +17,7 @@ open class WKCustomWebView: WKWebView {
     private var deleteCookieName: String = ""
     
     @objc
-    public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
+    public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configuration: WKWebViewConfiguration? = nil, configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
         if(userDefault == nil)
         {
             self.userDefault = UserDefaults.standard
@@ -34,14 +34,14 @@ open class WKCustomWebView: WKWebView {
         self.saveCookieName = saveCookieName
         self.deleteCookieName = deleteCookieName
         
-        
-        
-        
-        
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
         let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
         let dispatchGroup = DispatchGroup()
-        let config = WKWebViewConfiguration()
+        
+        var config = WKWebViewConfiguration()
+        if let con = configuration {
+            config = con
+        }
         let preferences: WKPreferences = WKPreferences.init()
         preferences.javaScriptCanOpenWindowsAutomatically = true
         preferences.javaScriptEnabled = true

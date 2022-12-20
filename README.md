@@ -39,11 +39,12 @@ lazy var wkWebView: WKCustomWebView = {
 // (상세 설정 생성 방법)
 // - frame : WKCustomWebView를 그릴 Frame 지정
 // - userDefault : 앱에서 사용할 UserDefault 객체 전달 (쿠키 정보 저장을 위해 사용)
-// - uDCookie : 앱에서 사용할 UserDefault에 저장할 키 이름 
-// - saveCookieName : Cookie중 저장할 쿠키 문자열 (포함검색) 
-// - deleteCookieName : Cookie 중 삭제할 쿠기 문자열 (포함검색) 
+// - uDCookie : 앱에서 사용할 UserDefault에 저장할 키 이름 --- 선택사항
+// - saveCookieName : Cookie중 저장할 쿠키 문자열 (포함검색) --- 선택사항
+// - deleteCookieName : Cookie 중 삭제할 쿠기 문자열 (포함검색) --- 선택사항
+// - configuration : 웹뷰에 설정할 configuration 객체 전달 --- 선택사항
 lazy var wkWebView: WKCustomWebView = {
-    let webView: WKCustomWebView = WKCustomWebView(frame: CGRect.init(x: 0, y: 0, width: self.mainView.frame.size.width, height: self.mainView.frame.size.height), userDefault: <UserDefault 객체>, uDCookie: "쿠키 저장 키이름", saveCookieName: "저장할 쿠키 문자열", deleteCookieName: "삭제할 쿠키 문자열")
+    let webView: WKCustomWebView = WKCustomWebView(frame: CGRect.init(x: 0, y: 0, width: self.mainView.frame.size.width, height: self.mainView.frame.size.height), userDefault: <UserDefault 객체>, uDCookie: "쿠키 저장 키이름", saveCookieName: "저장할 쿠키 문자열", deleteCookieName: "삭제할 쿠키 문자열", configuration: <WKWebViewConfiguration 객체>)
     return webView
     
 }()
