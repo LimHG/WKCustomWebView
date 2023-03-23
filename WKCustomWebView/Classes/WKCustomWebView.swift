@@ -71,6 +71,15 @@ open class WKCustomWebView: WKWebView {
         fatalError("WKCustomWebView : init(coder:) has not been implemented, init(frame:configurationBlock:)")
     }
 
+    deinit {
+#if DEBUG
+        print("WKCustomWebView : deinit")
+#endif
+        self.configuration.userContentController.removeAllUserScripts()
+        self.navigationDelegate = nil
+        self.removeFromSuperview()
+    }
+    
     // MARK: --- Func: WKCustomWebView Class
     private func cookieSet(wkDataStore: WKWebsiteDataStore) {
         let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
@@ -113,7 +122,6 @@ open class WKCustomWebView: WKWebView {
         self.reload()
     }
 }
-
 
 extension WKCustomWebView: WKNavigationDelegate {
     // MARK: - WKNavigationDelegate
