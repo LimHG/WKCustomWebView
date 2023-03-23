@@ -28,14 +28,14 @@ open class WKCustomWebView: WKWebView {
         self.deleteCookieName = deleteCookieName
         
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
-        self.cookieSet(wkDataStore: wkDataStore)
+        cookieSet(wkDataStore: wkDataStore)
         
         var config = WKWebViewConfiguration()
         if let con = configuration {
             config = con
         }
         config.websiteDataStore = wkDataStore
-        config.preferences = self.preferences
+        config.preferences = preferences
         
         super.init(frame: frame, configuration: config)
         navigationDelegate = self
