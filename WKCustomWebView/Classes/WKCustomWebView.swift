@@ -59,7 +59,7 @@ open class WKCustomWebView: WKWebView {
         let preferences: WKPreferences = WKPreferences()
         preferences.javaScriptCanOpenWindowsAutomatically = true
         preferences.javaScriptEnabled = true
-        
+            
         config.websiteDataStore = wkDataStore
         config.preferences = preferences
         
