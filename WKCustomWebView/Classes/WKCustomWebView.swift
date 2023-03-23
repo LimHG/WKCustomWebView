@@ -14,12 +14,6 @@ open class WKCustomWebView: WKWebView {
     private var uDCookie: String = ""
     private var saveCookieName: String = ""
     private var deleteCookieName: String = ""
-    private lazy var preferences: WKPreferences = {
-        let preferences: WKPreferences = WKPreferences()
-        preferences.javaScriptCanOpenWindowsAutomatically = true
-        preferences.javaScriptEnabled = true
-        return preferences
-    }()
     
     @objc public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configuration: WKWebViewConfiguration? = nil, configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
         self.userDefault = userDefault == nil ? UserDefaults.standard : userDefault
@@ -28,12 +22,44 @@ open class WKCustomWebView: WKWebView {
         self.deleteCookieName = deleteCookieName
         
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
-        cookieSet(wkDataStore: wkDataStore)
+        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
+        let dispatchGroup = DispatchGroup()
+        if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
+            for (_, cookieProperties) in cookieDictionary {
+                if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
+                    dispatchGroup.enter()
+                    if #available(iOS 11.0, *) {
+                        wkDataStore.httpCookieStore.setCookie(cookie){
+                            dispatchGroup.leave()
+                        }
+                    } else {
+                        HTTPCookieStorage.shared.setCookie(cookie)
+                        dispatchGroup.leave()
+                    }
+                }
+            }
+        } else {
+            for cookie in sharedCookies{
+                dispatchGroup.enter()
+                if #available(iOS 11.0, *) {
+                    wkDataStore.httpCookieStore.setCookie(cookie){
+                        dispatchGroup.leave()
+                    }
+                } else {
+                    HTTPCookieStorage.shared.setCookie(cookie)
+                    dispatchGroup.leave()
+                }
+            }
+        }
         
         var config = WKWebViewConfiguration()
         if let con = configuration {
             config = con
         }
+        var preferences: WKPreferences = WKPreferences()
+        preferences.javaScriptCanOpenWindowsAutomatically = true
+        preferences.javaScriptEnabled = true
+        
         config.websiteDataStore = wkDataStore
         config.preferences = preferences
         
