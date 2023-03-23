@@ -3,8 +3,7 @@ import Foundation
 import WebKit
 
 open class WKCustomWebView: WKWebView {
-    // navigationDelegate
-    @objc public weak var wkNavigationDelegate: WKNavigationDelegate?
+    @objc public weak var wkNavigationDelegate: WKNavigationDelegate? // navigationDelegate
     // WKCustomWebView Delegate Function
     @objc public var onDecidePolicyForNavigationAction: ((WKWebView, WKNavigationAction, @escaping (WKNavigationActionPolicy) -> Swift.Void) -> Void)?
     @objc public var onDecidePolicyForNavigationResponse: ((WKWebView, WKNavigationResponse, @escaping (WKNavigationResponsePolicy) -> Swift.Void) -> Void)?
@@ -15,37 +14,41 @@ open class WKCustomWebView: WKWebView {
     private var uDCookie: String = ""
     private var saveCookieName: String = ""
     private var deleteCookieName: String = ""
+    private lazy var preferences: WKPreferences = {
+        let preferences: WKPreferences = WKPreferences()
+        preferences.javaScriptCanOpenWindowsAutomatically = true
+        preferences.javaScriptEnabled = true
+        return preferences
+    }()
     
-    @objc
-    public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configuration: WKWebViewConfiguration? = nil, configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
-        if(userDefault == nil)
-        {
-            self.userDefault = UserDefaults.standard
-        } else {
-            self.userDefault = userDefault
-        }
-        
-        if(uDCookie == "")
-        {
-            self.uDCookie = "uDCookie"
-        } else {
-            self.uDCookie = uDCookie
-        }
+    @objc public init(frame: CGRect, userDefault: UserDefaults? = nil, uDCookie: String = "", saveCookieName: String = "", deleteCookieName: String = "", configuration: WKWebViewConfiguration? = nil, configurationBlock: ((WKWebViewConfiguration) -> Void)? = nil) {
+        self.userDefault = userDefault == nil ? UserDefaults.standard : userDefault
+        self.uDCookie = uDCookie == "" ? "uDCookie" : uDCookie
         self.saveCookieName = saveCookieName
         self.deleteCookieName = deleteCookieName
         
         let wkDataStore = WKWebsiteDataStore.nonPersistent()
-        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
-        let dispatchGroup = DispatchGroup()
+        self.cookieSet(wkDataStore: wkDataStore)
         
         var config = WKWebViewConfiguration()
         if let con = configuration {
             config = con
         }
-        let preferences: WKPreferences = WKPreferences.init()
-        preferences.javaScriptCanOpenWindowsAutomatically = true
-        preferences.javaScriptEnabled = true
+        config.websiteDataStore = wkDataStore
+        config.preferences = self.preferences
         
+        super.init(frame: frame, configuration: config)
+        navigationDelegate = self
+    }
+    
+    required public init?(coder: NSCoder) {
+        fatalError("WKCustomWebView : init(coder:) has not been implemented, init(frame:configurationBlock:)")
+    }
+
+    // MARK: --- Func: WKCustomWebView Class
+    private func cookieSet(wkDataStore: WKWebsiteDataStore) {
+        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
+        let dispatchGroup = DispatchGroup()
         if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
             for (_, cookieProperties) in cookieDictionary {
                 if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
@@ -73,92 +76,20 @@ open class WKCustomWebView: WKWebView {
                 }
             }
         }
-
-        config.websiteDataStore = wkDataStore
-        config.preferences = preferences
-        
-        super.init(frame: frame, configuration: config)
-        navigationDelegate = self
     }
     
-    required public init?(coder: NSCoder) {
-        fatalError("WKCustomWebView : init(coder:) has not been implemented, init(frame:configurationBlock:)")
+    public func WKCustomWebViewSC() {
+        self.cookieSet(wkDataStore: self.configuration.websiteDataStore)
     }
     
-    
-    
-    // MARK: --- Func: WKCustomWebView Class
-    public func WKCustomWebViewSC()
-    {
-        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
-        let dispatchGroup = DispatchGroup()
-        if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
-            for (_, cookieProperties) in cookieDictionary {
-                if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
-                    dispatchGroup.enter()
-                    if #available(iOS 11.0, *) {
-                        self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
-                            dispatchGroup.leave()
-                        })
-                    } else {
-                        HTTPCookieStorage.shared.setCookie(cookie)
-                        dispatchGroup.leave()
-                    }
-                }
-            }
-        } else {
-            for cookie in sharedCookies{
-                dispatchGroup.enter()
-                if #available(iOS 11.0, *) {
-                    self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
-                        dispatchGroup.leave()
-                    })
-                } else {
-                    HTTPCookieStorage.shared.setCookie(cookie)
-                    dispatchGroup.leave()
-                }
-            }
-        }
-    }
-    public func WKCustomWebViewSCandRload()
-    {
-        let sharedCookies: Array<HTTPCookie> = HTTPCookieStorage.shared.cookies!
-        let dispatchGroup = DispatchGroup()
-        if let cookieDictionary = self.userDefault?.dictionary(forKey: self.uDCookie) {
-            for (_, cookieProperties) in cookieDictionary {
-                if let cookie = HTTPCookie(properties: cookieProperties as! [HTTPCookiePropertyKey : Any] ) {
-                    dispatchGroup.enter()
-                    if #available(iOS 11.0, *) {
-                        self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
-                            dispatchGroup.leave()
-                        })
-                    } else {
-                        HTTPCookieStorage.shared.setCookie(cookie)
-                        dispatchGroup.leave()
-                    }
-                }
-            }
-        } else {
-            for cookie in sharedCookies{
-                dispatchGroup.enter()
-                if #available(iOS 11.0, *) {
-                    self.configuration.websiteDataStore.httpCookieStore.setCookie(cookie, completionHandler: {
-                        dispatchGroup.leave()
-                    })
-                } else {
-                    HTTPCookieStorage.shared.setCookie(cookie)
-                    dispatchGroup.leave()
-                }
-            }
-        }
-        
+    public func WKCustomWebViewSCandRload() {
+        self.cookieSet(wkDataStore: self.configuration.websiteDataStore)
         self.reload()
     }
 }
 
 
 extension WKCustomWebView: WKNavigationDelegate {
-    
     // MARK: - WKNavigationDelegate
     public func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Swift.Void) {
         if let handler = onDecidePolicyForNavigationAction {
@@ -193,7 +124,6 @@ extension WKCustomWebView: WKNavigationDelegate {
                     // 네이티브 로그인 작업 부분
                 }
             }
-            
             handler(webView, navigationResponse, decisionHandler)
         } else {
             decisionHandler(.allow)
@@ -218,22 +148,17 @@ extension WKCustomWebView: WKNavigationDelegate {
             var cookieDict = [String : AnyObject]()
             self.configuration.websiteDataStore.httpCookieStore.getAllCookies({
             (cookies) in
-                if(cookies.count > 0)
-                {
+                if cookies.count > 0 {
                     let now = Date()
                     for cookie in cookies {
-                        if(self.saveCookieName != "")
-                        {
-                            if(cookie.domain.contains(self.saveCookieName)) {
+                        if !self.saveCookieName.isEmpty {
+                            if cookie.domain.contains(self.saveCookieName) {
                                 if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                     HTTPCookieStorage.shared.deleteCookie(cookie)
                                     webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
-                                }
-                                else {
-                                    if(self.deleteCookieName != "")
-                                    {
-                                        if(cookie.name.contains(self.deleteCookieName))
-                                        {
+                                } else {
+                                    if !self.deleteCookieName.isEmpty {
+                                        if cookie.name.contains(self.deleteCookieName) {
                                             HTTPCookieStorage.shared.deleteCookie(cookie)
                                             webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                         } else {
@@ -250,10 +175,8 @@ extension WKCustomWebView: WKNavigationDelegate {
                                 webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                             }
                             else {
-                                if(self.deleteCookieName != "")
-                                {
-                                    if(cookie.name.contains(self.deleteCookieName))
-                                    {
+                                if !self.deleteCookieName.isEmpty {
+                                    if cookie.name.contains(self.deleteCookieName) {
                                         HTTPCookieStorage.shared.deleteCookie(cookie)
                                         webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                     } else {
@@ -265,24 +188,19 @@ extension WKCustomWebView: WKNavigationDelegate {
                             }
                         }
                     }
-
                     self.userDefault?.set(cookieDict, forKey: self.uDCookie)
-                    self.userDefault?.synchronize()
                 } else {
                     if let cookies = HTTPCookieStorage.shared.cookies {
                         let now = Date()
                         for cookie in cookies {
-                            if(self.saveCookieName != "")
-                            {
-                                if(cookie.domain.contains(self.saveCookieName)) {
+                            if !self.saveCookieName.isEmpty {
+                                if cookie.domain.contains(self.saveCookieName) {
                                     if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                         HTTPCookieStorage.shared.deleteCookie(cookie)
                                         webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                     } else {
-                                        if(self.deleteCookieName != "")
-                                        {
-                                            if(cookie.name.contains(self.deleteCookieName))
-                                            {
+                                        if !self.deleteCookieName.isEmpty {
+                                            if cookie.name.contains(self.deleteCookieName) {
                                                 HTTPCookieStorage.shared.deleteCookie(cookie)
                                                 webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                             } else {
@@ -298,10 +216,8 @@ extension WKCustomWebView: WKNavigationDelegate {
                                     HTTPCookieStorage.shared.deleteCookie(cookie)
                                     webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                 } else {
-                                    if(self.deleteCookieName != "")
-                                    {
-                                        if(cookie.name.contains(self.deleteCookieName))
-                                        {
+                                    if !self.deleteCookieName.isEmpty {
+                                        if cookie.name.contains(self.deleteCookieName) {
                                             HTTPCookieStorage.shared.deleteCookie(cookie)
                                             webView.configuration.websiteDataStore.httpCookieStore.delete(cookie, completionHandler: nil)
                                         } else {
@@ -314,7 +230,6 @@ extension WKCustomWebView: WKNavigationDelegate {
                             }
                         }
                         self.userDefault?.set(cookieDict, forKey: self.uDCookie)
-                        self.userDefault?.synchronize()
                     }
                 }
             })
@@ -324,16 +239,13 @@ extension WKCustomWebView: WKNavigationDelegate {
             if let cookies = HTTPCookieStorage.shared.cookies {
                 let now = Date()
                 for cookie in cookies {
-                    if(self.saveCookieName != "")
-                    {
-                        if(cookie.domain.contains(self.saveCookieName)) {
+                    if !self.saveCookieName.isEmpty {
+                        if cookie.domain.contains(self.saveCookieName) {
                             if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                                 HTTPCookieStorage.shared.deleteCookie(cookie)
                             } else {
-                                if(self.deleteCookieName != "")
-                                {
-                                    if(cookie.name.contains(self.deleteCookieName))
-                                    {
+                                if !self.deleteCookieName.isEmpty {
+                                    if cookie.name.contains(self.deleteCookieName) {
                                         HTTPCookieStorage.shared.deleteCookie(cookie)
                                     } else {
                                         cookieDict[cookie.name] = cookie.properties as AnyObject?
@@ -347,10 +259,8 @@ extension WKCustomWebView: WKNavigationDelegate {
                         if let expiresDate = cookie.expiresDate, now.compare(expiresDate) == .orderedDescending {
                             HTTPCookieStorage.shared.deleteCookie(cookie)
                         } else {
-                            if(self.deleteCookieName != "")
-                            {
-                                if(cookie.name.contains(self.deleteCookieName))
-                                {
+                            if !self.deleteCookieName.isEmpty {
+                                if cookie.name.contains(self.deleteCookieName) {
                                     HTTPCookieStorage.shared.deleteCookie(cookie)
                                 } else {
                                     cookieDict[cookie.name] = cookie.properties as AnyObject?
@@ -361,13 +271,9 @@ extension WKCustomWebView: WKNavigationDelegate {
                         }
                     }
                 }
-
                 self.userDefault?.set(cookieDict, forKey: self.uDCookie)
-                self.userDefault?.synchronize()
             }
         }
-        
-        
         wkNavigationDelegate?.webView?(webView, didCommit: navigation)
     }
     
@@ -394,7 +300,6 @@ extension WKCustomWebView: WKNavigationDelegate {
             } else {
                 disposition = .cancelAuthenticationChallenge
             }
-            
             completionHandler(disposition, credential)
         }
     }
@@ -403,5 +308,4 @@ extension WKCustomWebView: WKNavigationDelegate {
     public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         wkNavigationDelegate?.webViewWebContentProcessDidTerminate?(webView)
     }
-    
 }
